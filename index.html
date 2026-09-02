@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SpliceECGenio - Explorador Genómico de Exones, Intrones y Consecuencias de Variantes</title>
+    <meta name="description"
+        content="Herramienta bioinformática para descargar la estructura genómica completa (exones e intrones) desde Ensembl y visualizar variantes genómicas a nivel macro y micro.">
+    <link rel="stylesheet" href="css/app.css">
+</head>
+
+<body>
+    <div class="app-container">
+
+        <!-- Header -->
+        <header class="app-header">
+            <div class="brand-section">
+                <div class="brand-logo">🧬</div>
+                <div class="brand-titles">
+                    <h1>SpliceECGenio <span style="font-size: 0.9rem; font-weight: 400; opacity: 0.8;">| Genomic
+                            VariantStudio</span></h1>
+                    <p>Descarga automática de estructura de exones/intrones, visor de bases y simulador de marco de
+                        lectura</p>
+                </div>
+            </div>
+            <div class="header-actions">
+                <button id="downloadFastaBtn" class="btn-secondary"
+                    title="Descargar secuencia genómica FASTA completa">💾 Descargar FASTA</button>
+                <button id="themeToggleBtn" class="btn-secondary" title="Cambiar tema claro/oscuro">🌓 Tema</button>
+                <button id="exportReportBtn" class="btn-secondary" title="Imprimir / Exportar reporte">📄
+                    Exportar</button>
+            </div>
+        </header>
+
+        <!-- Step 1 & Step 2 Input Section -->
+        <section class="query-grid">
+            <!-- Step 1: Genomic Variant input -->
+            <div class="input-card">
+                <div class="input-label-group">
+                    <label for="variantInput" class="input-label"
+                        style="display: flex; flex-direction: column; gap: 2px;">
+                        <span><span class="step-badge">Paso 1</span> Variante Genómica</span>
+                        <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600;">(Chr:Pos
+                            Ref&gt;Alt)</span>
+                    </label>
+                    <span class="input-subtext">Coordenada genómica exacta (GRCh38)</span>
+                </div>
+                <div class="search-input-wrapper">
+                    <input type="text" id="variantInput" class="input-field"
+                        placeholder="ej. 5:169670598 G>A o 8:140300616 T>G" value="5:169670598 G>A">
+                </div>
+            </div>
+
+            <!-- Step 2: Optional Transcript & Variant Type -->
+            <div class="input-card">
+                <div class="input-label-group">
+                    <label for="transcriptInput" class="input-label">
+                        <span class="step-badge">Paso 2 (Opcional)</span> Transcripto (NM_ o ENST) & Tipo
+                    </label>
+                </div>
+                <div style="display: flex; gap: 8px; margin-top: 4px;">
+                    <input type="text" id="transcriptInput" class="input-field" placeholder="ej. NM_000344.4 (Opcional)"
+                        value="NM_000344.4" style="flex: 1.5;">
+                    <select id="variantTypeSelect" class="input-field" style="flex: 1; cursor: pointer;">
+                        <option value="auto">Auto-detectar tipo</option>
+                        <option value="splicing">Splicing</option>
+                        <option value="frameshift">Frameshift</option>
+                        <option value="nonsense">Nonsense</option>
+                        <option value="missense">Missense</option>
+                    </select>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 10px; align-items: flex-end;">
+                <button id="calculateBtn" class="btn-primary" style="height: 52px; width: 100%;">
+                    <span>⚡ Descargar y Visualizar</span>
+                </button>
+            </div>
+        </section>
+
+        <!-- Collapsible Examples Section below Steps 1 and 2 -->
+        <div class="preset-collapsible-wrapper">
+            <button id="togglePresetsBtn" class="btn-toggle-presets">
+                <span>💡 Ejemplos Reales (DOCK2, ABCA3, Inserciones, Deleciones, Chr 8, 6, 1)</span>
+                <span id="presetsArrow" style="font-size: 1.1rem;">▾</span>
+            </button>
+            <div class="preset-pills" id="presetPills" style="display: none; margin-top: 10px;">
+                <button class="preset-pill active" data-variant="5:169670598 G>A"
+                    data-transcript="NM_004946.3">5:169670598 G>A (DOCK2)</button>
+                <button class="preset-pill" data-variant="16:2172776 A>T"
+                    data-transcript="NM_001089.3">NM_001089.3(ABCA3):c.875A>T</button>
+                <button class="preset-pill" data-variant="8:140300616 T>G" data-transcript="">8:140300616 T>G</button>
+                <button class="preset-pill" data-variant="chr8-140300616-T-G"
+                    data-transcript="">chr8-140300616-T-G</button>
+                <button class="preset-pill" data-variant="6 31740453 G T" data-transcript="">6 31740453 G T</button>
+                <button class="preset-pill" data-variant="1:930130:C:G" data-transcript="">1:930130:C:G</button>
+                <button class="preset-pill" data-variant="1-1042601-A-AGAGAG" data-transcript="">1-1042601-A-AGAGAG (Ins
+                    GAGAG)</button>
+                <button class="preset-pill" data-variant="1-1042466-GGGC-G" data-transcript="">1-1042466-GGGC-G (Del
+                    GGC)</button>
+                <button class="preset-pill" data-variant="7:93134264 CT > C" data-transcript="">7:93134264 CT > C (Del
+                    T)</button>
+            </div>
+        </div>
+
+        <!-- Live Status Bar for Ensembl Download -->
+        <div id="downloadStatusBox" class="nmd-decision-box"
+            style="display: none; padding: 14px 20px; margin-bottom: 24px;">
+            <div class="nmd-title">
+                <span id="downloadStatusText">Iniciando consulta Ensembl...</span>
+            </div>
+        </div>
+
+        <!-- Main Dashboard Steps (Hidden until calculation) -->
+        <main class="dashboard-grid" id="dashboardGrid" style="display: none; flex-direction: column; gap: 24px;">
+
+            <!-- Step 3: Exon & Intron Map (Macro View) -->
+            <div class="card" id="transcriptCard">
+                <div class="card-header">
+                    <div class="card-title-group">
+                        <div class="card-icon">🗺️</div>
+                        <div>
+                            <h3 class="card-title" id="geneTitleDisplay">
+                                <span class="step-badge">Paso 3</span> Mapa General de Exones e Intrones
+                            </h3>
+                            <p class="input-subtext" id="geneSubDetailsDisplay">Cargando estructura genómica...</p>
+                        </div>
+                    </div>
+                    <div id="variantBadgeTop">
+                        <span class="badge badge-warning">5:169670615 A>G</span>
+                    </div>
+                </div>
+
+                <!-- Exon Map Container -->
+                <div class="exon-map-container" id="exonMapContainer">
+                    <!-- Rendered dynamically -->
+                </div>
+            </div>
+
+            <!-- Step 4: Sequence & Exon Junction Viewer -->
+            <div class="card" id="genooxViewerCard">
+                <div class="card-header">
+                    <div class="card-title-group">
+                        <div class="card-icon">🔬</div>
+                        <div>
+                            <h2 class="card-title">
+                                <span class="step-badge">Paso 4</span> Visor a Nivel de Bases y Splicing
+                            </h2>
+                            <p class="input-subtext">Regla genómica, pista de aminoácidos en chevrons, intrones
+                                (—►—►—►—), unión de splicing con líneas cian y marcador de la variante</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Base Viewer Container -->
+                <div id="genooxViewerContainer">
+                    <!-- Rendered dynamically -->
+                </div>
+            </div>
+
+            <!-- Step 5: Consequence Metrics and Biological Classification -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title-group">
+                        <div class="card-icon">⚙️</div>
+                        <h3 class="card-title">
+                            <span class="step-badge">Paso 5</span> Clasificación del Tipo de Variante
+                        </h3>
+                    </div>
+                    <div id="consequenceCategoryBadge">
+                        <span class="badge badge-warning">Splicing</span>
+                    </div>
+                </div>
+
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <span class="metric-label">Tipo de Variante Interpretado</span>
+                        <span class="metric-value highlight" id="variantTypeVal">Splicing</span>
+                        <span class="metric-sub" id="variantTypeSub">Deducción automática</span>
+                    </div>
+                    <div class="metric-card">
+                        <span class="metric-label">Coordenada Genómica</span>
+                        <span class="metric-value highlight" id="genomicCoordVal">Chr5:169,670,615</span>
+                        <span class="metric-sub" id="genomicCoordSub">Cambio A > G</span>
+                    </div>
+                    <div class="metric-card">
+                        <span class="metric-label">Localización</span>
+                        <span class="metric-value" id="locationVal">Intrón 7 (+1)</span>
+                        <span class="metric-sub" id="locationSub">En gen SMN1</span>
+                    </div>
+                    <div class="metric-card">
+                        <span class="metric-label">Impacto en Splicing</span>
+                        <span class="metric-value highlight" id="splicingImpactVal">Afecta Splice Site</span>
+                        <span class="metric-sub" id="splicingImpactSub">Sitio donante canónico (+1)</span>
+                    </div>
+                </div>
+
+                <!-- Functional Description Box -->
+                <div class="nmd-decision-box" style="margin-top: 16px;">
+                    <div class="nmd-title">
+                        <span>📝 Consecuencia Molecular e Impacto Esperado:</span>
+                    </div>
+                    <p class="nmd-description" id="consequenceDescText">
+                        Cargando análisis...
+                    </p>
+                </div>
+            </div>
+
+            <!-- Step 6: Interactive Consequence & Reading Frame Simulator -->
+            <div id="consequenceSimContainer">
+                <!-- Rendered dynamically for Splicing / Frameshift -->
+            </div>
+
+        </main>
+
+        <!-- Footer -->
+        <footer class="app-footer">
+            <p><strong>NonTool Genomic VariantStudio</strong> &bull; Conexión directa con Ensembl REST API y modelado de
+                marco de lectura</p>
+        </footer>
+
+    </div>
+
+    <!-- Scripts -->
+    <script type="module" src="js/app.js"></script>
+</body>
+
+</html>

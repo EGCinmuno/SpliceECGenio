@@ -1,0 +1,20 @@
+{
+  "name": "spliceecgenio",
+  "version": "1.0.0",
+  "description": "Explorador Genómico de Exones, Intrones y Simulador Pedagógico de Consecuencias de Variantes y Splicing",
+  "type": "module",
+  "scripts": {
+    "start": "python -m http.server 8080"
+  },
+  "keywords": [
+    "genomics",
+    "splicing",
+    "ensembl",
+    "bioinformatics",
+    "frameshift",
+    "exon-skipping",
+    "intron-retention"
+  ],
+  "author": "EGCinmuno",
+  "license": "MIT"
+}
